@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router();
+const controller = require("../../controllers/about/ourValuesController");
+const upload = require("../../middlewares/upload");
+
+router.post("/", upload.any(), controller.createValues);
+router.get("/", controller.getValues);
+router.put("/:id", upload.any(), controller.updateValues);
+router.delete("/:id", controller.deleteValues);
+
+module.exports = router;
