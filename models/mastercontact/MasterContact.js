@@ -2,25 +2,44 @@ const mongoose = require("mongoose");
 
 const masterContactSchema = new mongoose.Schema({
   subtitle: {
-    type: String
+    type: String,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
-  submitButtonText: {
-    type: String
+  buttonText: {
+    type: String,
+  },
+  fullName: String,
+  number: String,
+  email: String,
+  inquiryType: String,
+  message: String,
+  originPage: {
+    type: String,
+    required: true,
+    enum: [
+      "home",
+      "about",
+      "donate",
+      "scholarship",
+      "academy",
+      "contact",
+      "vidhyavanam",
+      "news",
+    ],
   },
   image: {
     url: {
       type: String,
-      required: true
+      required: true,
     },
     altText: {
       type: String,
-      default: ""
-    }
-  }
+      default: "",
+    },
+  },
 });
 
 module.exports = mongoose.model("MasterContact", masterContactSchema);

@@ -2,9 +2,9 @@ const ScopeOverview = require("../../models/ourscope/Overview");
 
 exports.createOverview = async (req, res) => {
   try {
-    const doc = new ScopeOverview(req.body);
-    await doc.save();
-    res.status(201).json(doc);
+    const overview = new ScopeOverview(req.body);
+    await overview.save();
+    res.status(201).json(overview);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

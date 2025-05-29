@@ -2,7 +2,17 @@ const Model = require("../../models/academy/History");
 
 exports.create = async (req, res) => {
   try {
-    const doc = new Model(req.body);
+    const file = req.files?.[0];
+
+    const doc = new Model({
+      title: req.body.title,
+      description: req.body.description,
+      logo: {
+        url: file?.path || "",
+        altText: req.body.altText || file?.originalname || "Logo",
+      },
+    });
+
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -12,7 +22,7 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const data = await Model.find();
+    const data = await Model.find().sort({ createdAt: -1 });
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -21,7 +31,24 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updated = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const file = req.files?.[0];
+
+    const updateData = {
+      title: req.body.title,
+      description: req.body.description,
+    };
+
+    if (file) {
+      updateData.logo = {
+        url: file.path,
+        altText: req.body.altText || file.originalname || "Logo",
+      };
+    }
+
+    const updated = await Model.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });

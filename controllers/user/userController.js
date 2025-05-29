@@ -1,16 +1,23 @@
+const jwt = require("jsonwebtoken");
 const User = require("../../models/user/User");
-
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+    if (!user)
+      return res.status(401).json({ message: "Invalid email or password" });
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
-
-    res.status(200).json({ message: "Login successful", user: { email: user.email } });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid email or password" });
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET);
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: { email: user.email },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -25,7 +32,9 @@ exports.register = async (req, res) => {
 
     const user = new User({ email, password });
     await user.save();
-    res.status(201).json({ message: "User created", user: { email: user.email } });
+    res
+      .status(201)
+      .json({ message: "User created", user: { email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

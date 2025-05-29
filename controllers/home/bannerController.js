@@ -1,11 +1,13 @@
 const Banner = require("../../models/home/Banner");
 
 exports.createBanner = async (req, res) => {
+  console.log(req.files, req.body, "rifhruhrugh");
   try {
     const files = req.files;
-
-    const desktopImage = files.find(file => file.fieldname === "desktop");
-    const mobileImage = files.find(file => file.fieldname === "mobile");
+    const desktopImage = files.find(
+      (file) => file.fieldname === "desktopImage"
+    );
+    const mobileImage = files.find((file) => file.fieldname === "mobileImage");
 
     const banner = new Banner({
       title: req.body.title,
@@ -15,23 +17,24 @@ exports.createBanner = async (req, res) => {
       images: {
         desktop: {
           url: desktopImage?.path,
-          altText: req.body.desktopAlt || ""
+          altText: req.body.desktopAlt || "",
         },
         mobile: {
           url: mobileImage?.path,
-          altText: req.body.mobileAlt || ""
-        }
-      }
+          altText: req.body.mobileAlt || "",
+        },
+      },
     });
 
+    console.log(banner, "bannerbanner");
     await banner.save();
     res.status(201).json(banner);
+    console.log(banner, "bannerbanner1");
   } catch (err) {
-    console.log("error111",err)
+    console.log("error111", err);
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.getAllBanners = async (req, res) => {
   try {
@@ -44,9 +47,53 @@ exports.getAllBanners = async (req, res) => {
 
 exports.updateBanner = async (req, res) => {
   try {
-    const updated = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.status(200).json(updated);
+    const files = req.files || [];
+    const {
+      title,
+      description,
+      buttonText,
+      buttonLink,
+      desktopAlt,
+      mobileAlt,
+    } = req.body;
+
+    const desktopImage = files.find(
+      (file) => file.fieldname === "desktopImage"
+    );
+    const mobileImage = files.find((file) => file.fieldname === "mobileImage");
+
+    const updateData = {
+      title,
+      description,
+      buttonText,
+      buttonLink,
+    };
+
+    if (desktopImage) {
+      updateData["images.desktop"] = {
+        url: desktopImage.path,
+        altText: desktopAlt || desktopImage.originalname || "",
+      };
+    }
+
+    if (mobileImage) {
+      updateData["images.mobile"] = {
+        url: mobileImage.path,
+        altText: mobileAlt || mobileImage.originalname || "",
+      };
+    }
+
+    const updatedBanner = await Banner.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+      }
+    );
+
+    res.status(200).json(updatedBanner);
   } catch (err) {
+    console.error("Update error:", err);
     res.status(500).json({ error: err.message });
   }
 };

@@ -2,7 +2,15 @@ const SocialMediaLink = require("../../models/social/SocialMediaLink");
 
 exports.create = async (req, res) => {
   try {
-    const doc = new SocialMediaLink(req.body);
+    const files = req.files;
+
+    const doc = new SocialMediaLink({
+      link: req.body.link,
+      icon: {
+        url: files[0]?.path,
+        altText: req.body.iconAltText || "",
+      },
+    });
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -21,7 +29,25 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updated = await SocialMediaLink.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { link } = req.body;
+    const files = req.files;
+    const file = files && files.length > 0 ? files[0] : null;
+
+    const updateData = {
+      link,
+    };
+
+    if (file) {
+      updateData.icon = {
+        url: file.path,
+        altText: iconAltText || file.originalname || "",
+      };
+    }
+    const updated = await SocialMediaLink.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });

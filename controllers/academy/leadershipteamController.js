@@ -2,7 +2,27 @@ const Model = require("../../models/academy/LeadershipTeam");
 
 exports.create = async (req, res) => {
   try {
-    const doc = new Model(req.body);
+    const files = req.files || [];
+    const members = JSON.parse(req.body.members || "[]");
+
+    const formattedMembers = members.map((member, index) => {
+      const imageFile = files[index];
+      return {
+        name: member.name,
+        description: member.description,
+        image: imageFile
+          ? {
+              url: imageFile.path,
+              altText: member.altText || imageFile.originalname || "Image",
+            }
+          : {
+              url: "",
+              altText: member.altText || "",
+            },
+      };
+    });
+
+    const doc = new Model({ members: formattedMembers });
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -21,7 +41,32 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updated = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const files = req.files || [];
+    const members = JSON.parse(req.body.members || "[]");
+
+    const formattedMembers = members.map((member, index) => {
+      const imageFile = files[index];
+      return {
+        name: member.name,
+        description: member.description,
+        image: imageFile
+          ? {
+              url: imageFile.path,
+              altText: member.altText || imageFile.originalname || "Image",
+            }
+          : member.image || {
+              url: "",
+              altText: member.altText || "",
+            },
+      };
+    });
+
+    const updated = await Model.findByIdAndUpdate(
+      req.params.id,
+      { members: formattedMembers },
+      { new: true }
+    );
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
