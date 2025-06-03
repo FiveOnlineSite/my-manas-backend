@@ -39,3 +39,31 @@ exports.register = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer "))
+      return res.status(401).json({ message: "Unauthorized" });
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { oldPassword, newPassword } = req.body;
+
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect current password" });
+
+    user.password = newPassword; 
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
