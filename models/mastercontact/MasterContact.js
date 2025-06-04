@@ -22,6 +22,7 @@ const masterContactSchema = new mongoose.Schema({
     enum: [
       "home",
       "about",
+      "scope",
       "donate",
       "scholarship",
       "academy",
@@ -33,7 +34,7 @@ const masterContactSchema = new mongoose.Schema({
   image: {
     url: {
       type: String,
-      required: true,
+      // required: true,
     },
     altText: {
       type: String,
