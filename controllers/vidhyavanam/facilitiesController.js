@@ -2,13 +2,14 @@ const Model = require("../../models/vidhyavanam/Facilities");
 
 exports.create = async (req, res) => {
   try {
-    const files = req.files || [];
+     const files = req.files || [];
+     
     const imageFile = files.find((f) => f.fieldname === "image");
     const videoFile = files.find((f) => f.fieldname === "video");
     const featuredImageFile = files.find(
       (f) => f.fieldname === "featuredImage"
     );
-    const doc = new Model({
+     const doc = new Model({
       title: req.body.title,
       resources: {
         image: imageFile && {
@@ -87,8 +88,7 @@ exports.update = async (req, res) => {
         // type: "image",
       };
     }
-
-    const updated = await Model.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const updated = await Model.findByIdAndUpdate(req.params.id,updateData, { new: true });
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
