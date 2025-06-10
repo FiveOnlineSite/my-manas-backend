@@ -37,15 +37,26 @@ exports.update = async (req, res) => {
     const parsedItems = JSON.parse(items);
     const files = req.files || [];
 
-    const updatedItems = parsedItems.map((item, index) => {
-      const file = files[index];
+    let fileIndex = 0;
+
+    const updatedItems = parsedItems.map((item) => {
+      let image = item.image || {};
+
+      if (item.hasNewImage === "true" || item.hasNewImage === true) {
+        const file = files[fileIndex];
+        if (file) {
+          image = {
+            url: file.path,
+            altText: item.image?.altText || file?.originalname || "",
+          };
+          fileIndex++;
+        }
+      }
+
       return {
         title: item.title,
         description: item.description,
-        image: {
-          url: file?.path || item.image?.url || "",
-          altText: item.altText || "",
-        },
+        image,
       };
     });
 
@@ -61,6 +72,7 @@ exports.update = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 exports.remove = async (req, res) => {
   try {

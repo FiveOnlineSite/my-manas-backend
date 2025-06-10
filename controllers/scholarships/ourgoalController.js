@@ -81,27 +81,35 @@ exports.update = async (req, res) => {
     );
 
     // Map goal images to parsed goals
-    const updatedGoals = parsedGoals.map((goal, index) => {
-      const newGoalImage = goalImageFiles[index];
+   let fileIndex = 0;
 
-      const existingGoal = existingDoc.goals[index];
+const updatedGoals = parsedGoals.map((goal, index) => {
+  const isNewImage = goal.images?.some((img) => img.isNew);
 
-      const existingImages = existingGoal?.images || [];
+  let updatedImages = [];
 
-      const updatedImages = newGoalImage
-        ? [
-            {
-              url: newGoalImage.path,
-              altText: goal.title || newGoalImage.originalname,
-            },
-          ]
-        : existingImages;
+  if (isNewImage) {
+    const newImageFile = goalImageFiles[fileIndex];
+    fileIndex++;
 
-      return {
-        ...goal,
-        images: updatedImages,
-      };
-    });
+    if (newImageFile) {
+      updatedImages.push({
+        url: newImageFile.path,
+        altText: goal.images?.[0]?.altText || newImageFile.originalname || "",
+      });
+    }
+  } else {
+    // Preserve existing images (passed from frontend)
+    updatedImages = goal.images || [];
+  }
+
+  return {
+    title: goal.title,
+    description: goal.description,
+    images: updatedImages,
+  };
+});
+
 
     const updateData = {
       title,

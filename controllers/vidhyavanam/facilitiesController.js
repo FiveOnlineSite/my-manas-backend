@@ -53,42 +53,45 @@ exports.update = async (req, res) => {
 
     const imageFile = files.find((f) => f.fieldname === "image");
     const videoFile = files.find((f) => f.fieldname === "video");
-    const featuredImageFile = files.find(
-      (f) => f.fieldname === "featuredImage"
-    );
+    const featuredImageFile = files.find((f) => f.fieldname === "featuredImage");
+
+    // Get the existing document
+    const existingDoc = await Model.findById(req.params.id);
+    if (!existingDoc) return res.status(404).json({ message: "Facility not found" });
+
+    const updatedResources = {
+      image: imageFile
+        ? {
+            url: imageFile.path,
+            altText: req.body.imageAltText || imageFile.originalname,
+          }
+        : existingDoc.resources?.image, // preserve if not re-uploaded
+
+      video: videoFile
+        ? {
+            url: videoFile.path,
+            altText: req.body.videoAltText || videoFile.originalname,
+          }
+        : existingDoc.resources?.video,
+
+      featuredImage: featuredImageFile
+        ? {
+            url: featuredImageFile.path,
+            altText: featuredImageFile.originalname || "Featured",
+          }
+        : existingDoc.resources?.featuredImage,
+    };
 
     const updateData = {
       title: req.body.title,
-      isFeatured:
-        req.body.isFeatured === "true" || req.body.isFeatured === true,
+      isFeatured: req.body.isFeatured === "true" || req.body.isFeatured === true,
+      resources: updatedResources,
     };
 
-    updateData.resources = {};
+    const updated = await Model.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
 
-    if (imageFile) {
-      updateData.resources.image = {
-        url: imageFile.path,
-        altText: req.body.imageAltText || imageFile.originalname,
-        // type: "image",
-      };
-    }
-
-    if (videoFile) {
-      updateData.resources.video = {
-        url: videoFile.path,
-        altText: req.body.videoAltText || videoFile.originalname,
-        // type: "video",
-      };
-    }
-
-    if (featuredImageFile) {
-      updateData.resources.featuredImage = {
-        url: featuredImageFile.path,
-        altText: featuredImageFile.originalname || "Featured",
-        // type: "image",
-      };
-    }
-    const updated = await Model.findByIdAndUpdate(req.params.id,updateData, { new: true });
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -52,22 +52,29 @@ exports.updateValues = async (req, res) => {
       return res.status(404).json({ error: "Document not found" });
     }
 
-    const updatedValues = parsedValues.map((val, index) => {
-      const file = files[index];
+    let fileIndex = 0;
 
-      // If new icon is provided, use it. Otherwise, fallback to existing icon.
-      const existingIcon = existingDoc.values[index]?.icon || {};
+const updatedValues = parsedValues.map((val, index) => {
+  let icon = null;
 
-      return {
-        ...val,
-        icon: file
-          ? {
-              url: file.path,
-              altText: val.iconAltText || file.originalname || "Icon",
-            }
-          : existingIcon,
-      };
-    });
+  if (typeof val.valueIcon === "string") {
+    // Use existing icon (from frontend)
+    icon = { url: val.valueIcon };
+  } else if (files[fileIndex]) {
+    // Use newly uploaded file
+    icon = {
+      url: files[fileIndex].path,
+      altText: val.iconAltText || files[fileIndex].originalname || "Icon",
+    };
+    fileIndex++;
+  }
+
+  return {
+    ...val,
+    icon,
+  };
+});
+
 
     const updatePayload = {
       title: req.body.title,

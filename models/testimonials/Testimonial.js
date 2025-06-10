@@ -4,10 +4,12 @@ const testimonialSchema = new mongoose.Schema({
   name: String,
   designation: String,
   location: String,
+  description: String,
   image: {
     url: String,
     altText: String
   }
+   
 });
 
 module.exports = mongoose.model("Testimonial", testimonialSchema);

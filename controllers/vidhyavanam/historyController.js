@@ -31,6 +31,11 @@ exports.getAll = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const file = req.files?.[0];
+    const existingDoc = await Model.findById(req.params.id);
+        if (!existingDoc) {
+          return res.status(404).json({ error: "Entry not found" });
+        }
+    
     const updateData = {
       title: req.body.title,
       description: req.body.description,
@@ -39,6 +44,12 @@ exports.update = async (req, res) => {
       updateData.logo = {
         url: file.path,
         altText: req.body.altText || file.originalname || "Logo",
+      };
+    }
+     else if (req.body.altText && existingDoc.logo) {
+      updateData.logo = {
+        ...existingDoc.logo,
+        altText: req.body.altText,
       };
     }
     const updated = await Model.findByIdAndUpdate(req.params.id,updateData, { new: true });

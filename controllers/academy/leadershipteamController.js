@@ -44,8 +44,11 @@ exports.update = async (req, res) => {
     const files = req.files || [];
     const members = JSON.parse(req.body.members || "[]");
 
-    const formattedMembers = members.map((member, index) => {
-      const imageFile = files[index];
+    let fileIndex = 0;
+
+    const formattedMembers = members.map((member) => {
+      const imageFile = member.hasNewImage ? files[fileIndex++] : null;
+
       return {
         name: member.name,
         description: member.description,
@@ -72,6 +75,7 @@ exports.update = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.remove = async (req, res) => {
   try {

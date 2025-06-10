@@ -7,6 +7,7 @@ exports.create = async (req, res) => {
       name: req.body.name,
       designation: req.body.designation,
       location: req.body.location,
+      description: req.body.description,
       image: {
         url: files[0]?.path,
         altText: req.body.imageAltText || "",
@@ -30,28 +31,36 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { name, designation, location } = req.body;
-    const files = req.files;
-    const file = files && files.length > 0 ? files[0] : null;
+    const { name, designation, location, altText,description  } = req.body;
+    const files = req.files || [];
+    const file = files.length > 0 ? files[0] : null;
 
     const updateData = {
       name,
       designation,
       location,
+      description,
     };
 
     if (file) {
       updateData.image = {
         url: file.path,
-        altText: imageAltText || file.originalname || "",
+        altText: altText || file.originalname || "",
       };
     }
-    const updated = await Testimonial.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    const updated = await Testimonial.findByIdAndUpdate(
+      req.params.id,
+      updateData, 
+      { new: true }
+    );
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.remove = async (req, res) => {
   try {

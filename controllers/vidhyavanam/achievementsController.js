@@ -40,14 +40,21 @@ exports.update = async (req, res) => {
     const { title, items } = req.body;
     const parsedItems = JSON.parse(items);
     const files = req.files || [];
+            let fileIndex = 0;
+
 
     const updatedItems = parsedItems.map((item, index) => {
-      const file = files[index];
+      let imageUrl = item.image?.url || "";
+         if (item.hasNewImage && files[fileIndex]) {
+        imageUrl = files[fileIndex].path;
+        fileIndex++;
+      }
+      // const file = files[index];
       return {
         title: item.title,
         description: item.description,
         image: {
-          url: file?.path || item.image?.url || "",
+           url: imageUrl,
           altText: item.altText || "",
         },
       };

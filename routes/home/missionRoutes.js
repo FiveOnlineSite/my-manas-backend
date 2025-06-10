@@ -8,7 +8,6 @@ router.post("/", upload.any(), controller.createMission);
 router.get("/", controller.getAllMissions);
 router.put(
   "/:id",
-  authMiddleware.apply,
   upload.any(),
   controller.updateMission
 );

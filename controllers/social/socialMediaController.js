@@ -29,9 +29,9 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { link } = req.body;
-    const files = req.files;
-    const file = files && files.length > 0 ? files[0] : null;
+    const { link, iconAltText } = req.body;
+    const files = req.files || [];
+    const file = files.length > 0 ? files[0] : null;
 
     const updateData = {
       link,
@@ -43,11 +43,13 @@ exports.update = async (req, res) => {
         altText: iconAltText || file.originalname || "",
       };
     }
+
     const updated = await SocialMediaLink.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true }
     );
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
