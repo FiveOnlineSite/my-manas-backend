@@ -10,6 +10,16 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.getByPage = async (req, res) => {
+  try {
+    const page = req.params.page;
+    const donate = await MasterDonate.find({ page });
+    res.status(200).json(donate);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.getAll = async (req, res) => {
   try {
     const entries = await MasterDonate.find();

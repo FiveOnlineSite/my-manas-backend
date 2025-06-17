@@ -31,12 +31,40 @@ exports.getByPage = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updated = await MasterQuote.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id } = req.params;
+    const { page: newPage, ...rest } = req.body;
+
+    // Find the current document by ID
+    const currentDoc = await MasterQuote.findById(id);
+    if (!currentDoc) {
+      return res.status(404).json({ error: "Quote not found" });
+    }
+
+    // Check if page has changed
+    if (newPage && newPage !== currentDoc.page) {
+      // Find the document with the new page value
+      const targetDoc = await MasterQuote.findOne({ page: newPage });
+
+      if (targetDoc) {
+        // Swap the page values
+        await MasterQuote.findByIdAndUpdate(targetDoc._id, { page: currentDoc.page });
+      }
+
+      // Update current document with new page
+      currentDoc.page = newPage;
+    }
+
+    // Update other fields
+    Object.assign(currentDoc, rest);
+    const updated = await currentDoc.save();
+
     res.status(200).json(updated);
   } catch (err) {
+    console.error("Update error:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.remove = async (req, res) => {
   try {

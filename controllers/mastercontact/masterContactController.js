@@ -31,7 +31,7 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const entries = await MasterContact.find();
+    const entries = await MasterContact.find().sort({ createdAt: -1 }); // ← Sort by latest
     res.status(200).json(entries);
   } catch (err) {
     res.status(500).json({ error: err.message });

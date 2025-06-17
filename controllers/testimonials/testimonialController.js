@@ -10,7 +10,7 @@ exports.create = async (req, res) => {
       description: req.body.description,
       image: {
         url: files[0]?.path,
-        altText: req.body.imageAltText || "",
+        altText: req.body.altText || "",
       },
     });
     await doc.save();

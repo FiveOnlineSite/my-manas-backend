@@ -41,20 +41,38 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const files = req.files;
+    const files = req.files || [];
     const { title, description } = req.body;
 
     const parsedIcons = JSON.parse(req.body.icons || "[]");
 
+    const existingDoc = await Model.findById(req.params.id);
+    if (!existingDoc) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    let fileIndex = 0;
+
     const updatedIcons = parsedIcons.map((item, index) => {
-      const file = files[index];
+      const existingIcon = existingDoc.icons?.[index];
+
+      let file = null;
+
+      if (item.hasNewIcon && files[fileIndex]) {
+        file = files[fileIndex];
+        fileIndex++;
+      }
 
       return {
-        icon: {
-          url: file?.path || item.icon?.url || "", // Use existing URL if file not uploaded
-          altText:
-            file?.originalname || item.icon?.altText || item.title || "Icon",
-        },
+        icon: file
+          ? {
+              url: file.path,
+              altText: file.originalname || item.title || "Icon",
+            }
+          : existingIcon?.icon || {
+              url: "",
+              altText: item.title || "Icon",
+            },
         title: item.title,
         description: item.description,
       };
@@ -72,6 +90,7 @@ exports.update = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.remove = async (req, res) => {
   try {

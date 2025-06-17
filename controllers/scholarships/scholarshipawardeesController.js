@@ -39,7 +39,7 @@ exports.getAll = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const files = req.files; // New uploaded image files
+    const files = req.files || []; // Array of uploaded files
     const parsedAwardees = JSON.parse(req.body.awardees); // Awardees from the request body
 
     const existingDoc = await Model.findById(req.params.id);
@@ -47,23 +47,29 @@ exports.update = async (req, res) => {
       return res.status(404).json({ error: "Document not found" });
     }
 
-    const updatedAwardees = parsedAwardees.map((awardee, index) => {
-      const newImageFile = files?.[index];
-      const existingAwardee = existingDoc.awardees?.[index];
+   let fileIndex = 0;
+const updatedAwardees = parsedAwardees.map((awardee, index) => {
+  const existingAwardee = existingDoc.awardees?.[index];
+  let newImageFile = null;
 
-      return {
-        name: awardee.name,
-        review: awardee.review,
-        year: awardee.year,
-        institute: awardee.institute,
-        image: newImageFile
-          ? {
-              url: newImageFile.path,
-              altText: awardee.name || newImageFile.originalname || "",
-            }
-          : existingAwardee?.image || null,
-      };
-    });
+  if (awardee.hasNewImage && files[fileIndex]) {
+    newImageFile = files[fileIndex];
+    fileIndex++;
+  }
+
+  return {
+    name: awardee.name,
+    review: awardee.review,
+    year: awardee.year,
+    institute: awardee.institute,
+    image: newImageFile
+      ? {
+          url: newImageFile.path,
+          altText: awardee.name || newImageFile.originalname || "",
+        }
+      : existingAwardee?.image || null,
+  };
+});
 
     const updateData = {
       title: req.body.title,
@@ -73,9 +79,7 @@ exports.update = async (req, res) => {
     const updatedDoc = await Model.findByIdAndUpdate(
       req.params.id,
       updateData,
-      {
-        new: true,
-      }
+      { new: true }
     );
 
     res.status(200).json(updatedDoc);
@@ -84,6 +88,7 @@ exports.update = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 exports.remove = async (req, res) => {

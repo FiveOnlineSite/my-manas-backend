@@ -12,7 +12,7 @@ exports.create = async (req, res) => {
       description: item.description,
       image: {
         url: files[index]?.path || "",
-        altText: item.image.altText || "",
+altText: item.image?.altText || "",
       },
     }));
 
@@ -40,22 +40,21 @@ exports.update = async (req, res) => {
     const { title, items } = req.body;
     const parsedItems = JSON.parse(items);
     const files = req.files || [];
-        let fileIndex = 0;
-
+    let fileIndex = 0;
 
     const updatedItems = parsedItems.map((item, index) => {
-       let imageUrl = item.image?.url || "";
-         if (item.hasNewImage && files[fileIndex]) {
+      let imageUrl = item.image?.url || "";
+      if (item.hasNewImage && files[fileIndex]) {
         imageUrl = files[fileIndex].path;
         fileIndex++;
       }
-      // const file = files[index];
+
       return {
         title: item.title,
         description: item.description,
         image: {
-           url: imageUrl,
-          altText: item.altText || "",
+          url: imageUrl,
+          altText: item.image?.altText || "", // ✅ FIXED HERE
         },
       };
     });
@@ -72,6 +71,7 @@ exports.update = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 // DELETE Achievement
 exports.remove = async (req, res) => {

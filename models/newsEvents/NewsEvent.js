@@ -8,7 +8,6 @@ const newsEventSchema = new mongoose.Schema({
     url: String,
     altText: String
   },
-  excerpt: String,
   content: String,
   metaTitle: String,
   metaDescription: String

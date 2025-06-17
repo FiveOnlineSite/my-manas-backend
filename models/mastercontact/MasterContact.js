@@ -41,6 +41,10 @@ const masterContactSchema = new mongoose.Schema({
       default: "",
     },
   },
-});
+  
+  
+},
+ { timestamps: true }
+);
 
 module.exports = mongoose.model("MasterContact", masterContactSchema);

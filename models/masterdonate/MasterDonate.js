@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const masterDonateSchema = new mongoose.Schema({
+    page: {
+    type: String,
+    required: true,
+    enum: [ "about", "donate"]
+  },
   title: {
     type: String,
     required: true

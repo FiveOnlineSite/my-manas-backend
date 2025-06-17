@@ -4,7 +4,7 @@ const masterQuoteSchema = new mongoose.Schema({
   page: {
     type: String,
     required: true,
-    enum: ["home", "about", "donate", "scholarship", "academy", "contact", "vidhyavanam", "news"]
+    enum: ["home", "about", "academy", "vidhyavanam"]
   },
   quote: {
     type: String,

@@ -6,11 +6,13 @@ const fileSchema = new mongoose.Schema({
 });
 
 const facilitySchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  // title: { type: String, required: true },
   resources: {
     image: fileSchema,
     video: fileSchema,
     featuredImage: fileSchema,
+     moreFeaturedImages: [fileSchema], // ✅ new array field
+    moreFeaturedVideos: [fileSchema], // ✅ new array field
   },
   isFeatured: { type: Boolean, default: false },
 });
