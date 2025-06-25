@@ -27,14 +27,21 @@ const fileSchema = new mongoose.Schema({
 //   }
 // }, { _id: false });
 
+const videoWithThumbnailSchema = new mongoose.Schema({
+  video: fileSchema,
+  thumbnail: fileSchema,
+});
+
 const vidhyaFacilitiesSchema = new mongoose.Schema({
- resources: {
+  // title: { type: String, required: true },
+  resources: {
     image: fileSchema,
     video: fileSchema,
     featuredImage: fileSchema,
      moreFeaturedImages: [fileSchema], // ✅ new array field
-    moreFeaturedVideos: [fileSchema], // ✅ new array field
+     moreFeaturedVideos: [videoWithThumbnailSchema], // ✅ new array field
   },
+   sliderText: { type: String },
   isFeatured: { type: Boolean, default: false },
 });
 

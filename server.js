@@ -26,6 +26,7 @@ app.use("/api/masterbanner", require("./routes/masterbanner"));
 app.use("/api/masterquote", require("./routes/masterquote"));
 app.use("/api/masterdonate", require("./routes/masterdonate"));
 app.use("/api/mastercontact", require("./routes/mastercontact"));
+app.use("/api/mastermetadata", require("./routes/mastermetadata"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

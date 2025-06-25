@@ -55,8 +55,7 @@ exports.update = async (req, res) => {
         description: item.description,
         image: {
            url: imageUrl,
-          altText: item.altText || "",
-        },
+altText: item.image?.altText || "",        },
       };
     });
 

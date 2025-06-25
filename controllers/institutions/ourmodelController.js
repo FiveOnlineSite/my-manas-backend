@@ -39,42 +39,85 @@ exports.getAll = async (req, res) => {
   }
 };
 
+// exports.update = async (req, res) => {
+//   try {
+//     const files = req.files || [];
+//     const { title, description } = req.body;
+
+//     const parsedIcons = JSON.parse(req.body.icons || "[]");
+
+//     const existingDoc = await Model.findById(req.params.id);
+//     if (!existingDoc) {
+//       return res.status(404).json({ error: "Document not found" });
+//     }
+
+//     let fileIndex = 0;
+
+//     const updatedIcons = parsedIcons.map((item, index) => {
+//       const existingIcon = existingDoc.icons?.[index];
+
+//       let file = null;
+
+//       if (item.hasNewIcon && files[fileIndex]) {
+//         file = files[fileIndex];
+//         fileIndex++;
+//       }
+
+//       return {
+//         icon: file
+//           ? {
+//               url: file.path,
+//               altText: file.originalname || item.title || "Icon",
+//             }
+//           : existingIcon?.icon || {
+//               url: "",
+//               altText: item.title || "Icon",
+//             },
+//         title: item.title,
+//         description: item.description,
+//       };
+//     });
+
+//     const updated = await Model.findByIdAndUpdate(
+//       req.params.id,
+//       { title, description, icons: updatedIcons },
+//       { new: true }
+//     );
+
+//     res.status(200).json(updated);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+
 exports.update = async (req, res) => {
   try {
     const files = req.files || [];
     const { title, description } = req.body;
-
     const parsedIcons = JSON.parse(req.body.icons || "[]");
-
-    const existingDoc = await Model.findById(req.params.id);
-    if (!existingDoc) {
-      return res.status(404).json({ error: "Document not found" });
-    }
 
     let fileIndex = 0;
 
-    const updatedIcons = parsedIcons.map((item, index) => {
-      const existingIcon = existingDoc.icons?.[index];
-
-      let file = null;
+    const updatedIcons = parsedIcons.map((item) => {
+      let icon = null;
 
       if (item.hasNewIcon && files[fileIndex]) {
-        file = files[fileIndex];
+        icon = {
+          url: files[fileIndex].path,
+          altText: files[fileIndex].originalname || item.title || "Icon",
+        };
         fileIndex++;
+      } else if (item.icon && item.icon.url) {
+        // preserve existing icon if not replaced
+        icon = item.icon;
       }
 
       return {
-        icon: file
-          ? {
-              url: file.path,
-              altText: file.originalname || item.title || "Icon",
-            }
-          : existingIcon?.icon || {
-              url: "",
-              altText: item.title || "Icon",
-            },
         title: item.title,
         description: item.description,
+        icon,
       };
     });
 

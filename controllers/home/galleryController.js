@@ -29,15 +29,55 @@ exports.getAllGalleryItems = async (req, res) => {
   }
 };
 
+// exports.updateGalleryItem = async (req, res) => {
+//   try {
+//     const files = req.files;
+//     const file = files && files.length > 0 ? files[0] : null;
+//     const { altText } = req.body;
+//   let file1 = null;
+//     let file2 = null;
+
+//       for (const f of files) {
+//       if (f.fieldname === "file") {
+//         file1 = f;
+//       } else if (f.fieldname === "file2") {
+//         file2 = f;
+//       }
+//     }
+
+//     const updateData = {};
+
+//     if (file1) {
+//       updateData.url = file1.path;
+//     }
+
+//     if (file2) {
+//       updateData.url2 = file2.path;
+//     }
+
+//     if (altText !== undefined) {
+//       updateData.altText = altText;
+//     }
+
+//     const updated = await Gallery.findByIdAndUpdate(req.params.id, updateData, {
+//       new: true,
+//     });
+//     res.status(200).json(updated);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 exports.updateGalleryItem = async (req, res) => {
   try {
-    const files = req.files;
-    const file = files && files.length > 0 ? files[0] : null;
-    const { altText } = req.body;
-  let file1 = null;
+    const files = req.files || [];
+    const { altText, removeUrl2 } = req.body; // capture the flag
+
+    let file1 = null;
     let file2 = null;
 
-      for (const f of files) {
+    // Loop through files to assign based on fieldname
+    for (const f of files) {
       if (f.fieldname === "file") {
         file1 = f;
       } else if (f.fieldname === "file2") {
@@ -55,6 +95,10 @@ exports.updateGalleryItem = async (req, res) => {
       updateData.url2 = file2.path;
     }
 
+    if (removeUrl2 === "true") {
+      updateData.url2 = null; // clear the optional video if flagged
+    }
+
     if (altText !== undefined) {
       updateData.altText = altText;
     }
@@ -62,12 +106,12 @@ exports.updateGalleryItem = async (req, res) => {
     const updated = await Gallery.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     });
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.deleteGalleryItem = async (req, res) => {
   try {

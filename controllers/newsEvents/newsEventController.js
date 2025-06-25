@@ -10,6 +10,7 @@ exports.create = async (req, res) => {
       content,
       metaTitle,
       metaDescription,
+      pageUrl,
     } = req.body;
 
     // `upload.any()` gives you an array of files
@@ -23,6 +24,7 @@ exports.create = async (req, res) => {
       content,
       metaTitle,
       metaDescription,
+      pageUrl,
 
       image: file ? { url: file.path } : undefined,
     });
@@ -44,6 +46,49 @@ exports.getAll = async (req, res) => {
   }
 };
 
+// GET ONE (by ID)
+// exports.getById = async (req, res) => {
+//   try {
+//     const data = await NewsEvent.findById(req.params.id);
+//     if (!data) {
+//       return res.status(404).json({ success: false, message: "News not found" });
+//     }
+//     res.status(200).json({ success: true, data });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// exports.getByTitle = async (req, res) => {
+//   try {
+//     const title = decodeURIComponent(req.params.title); // decode URL-safe strings
+//     const newsItem = await NewsEvent.findOne({ title });
+//     if (!newsItem) {
+//       return res.status(404).json({ success: false, message: "Not found" });
+//     }
+//     res.status(200).json({ success: true, data: newsItem });
+//   } catch (err) {
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// };
+
+exports.getByPageUrl = async (req, res) => {
+  try {
+    const pageUrl = req.params.pageUrl;
+    const newsItem = await NewsEvent.findOne({ pageUrl });
+
+    if (!newsItem) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    res.status(200).json({ success: true, data: newsItem });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+
+
 // UPDATE
 exports.update = async (req, res) => {
   try {
@@ -54,6 +99,7 @@ exports.update = async (req, res) => {
       content,
       metaTitle,
       metaDescription,
+      pageUrl,
 
     } = req.body;
 
@@ -67,6 +113,7 @@ exports.update = async (req, res) => {
       content,
       metaTitle,
       metaDescription,
+      pageUrl,
 
     };
 

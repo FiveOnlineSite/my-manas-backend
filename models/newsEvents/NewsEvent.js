@@ -10,7 +10,13 @@ const newsEventSchema = new mongoose.Schema({
   },
   content: String,
   metaTitle: String,
-  metaDescription: String
-});
+  metaDescription: String,
+   pageUrl: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+  
+},{timestamps:true});
 
 module.exports = mongoose.model("NewsEvent", newsEventSchema);
