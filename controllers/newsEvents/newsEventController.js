@@ -1,6 +1,41 @@
 const NewsEvent = require("../../models/newsEvents/NewsEvent");
 
 // CREATE
+// exports.create = async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       uploadDate,
+//       type,
+//       content,
+//       metaTitle,
+//       metaDescription,
+//       pageUrl,
+//     } = req.body;
+
+//     // `upload.any()` gives you an array of files
+//     const files = req.files;
+//     const file = files && files.length > 0 ? files[0] : null;
+
+//     const doc = new NewsEvent({
+//       title,
+//       uploadDate,
+//       type,
+//       content,
+//       metaTitle,
+//       metaDescription,
+//       pageUrl,
+
+//       image: file ? { url: file.path } : undefined,
+//     });
+
+//     await doc.save();
+//     res.status(201).json(doc);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 exports.create = async (req, res) => {
   try {
     const {
@@ -13,9 +48,18 @@ exports.create = async (req, res) => {
       pageUrl,
     } = req.body;
 
-    // `upload.any()` gives you an array of files
-    const files = req.files;
-    const file = files && files.length > 0 ? files[0] : null;
+    const files = req.files || [];
+    let imageFile = null;
+    let videoFile = null;
+
+    // Detect file types manually
+    files.forEach((file) => {
+      if (file.mimetype.startsWith("image/")) {
+        imageFile = file;
+      } else if (file.mimetype.startsWith("video/")) {
+        videoFile = file;
+      }
+    });
 
     const doc = new NewsEvent({
       title,
@@ -25,8 +69,8 @@ exports.create = async (req, res) => {
       metaTitle,
       metaDescription,
       pageUrl,
-
-      image: file ? { url: file.path } : undefined,
+      image: imageFile ? { url: imageFile.path } : undefined,
+      video: videoFile ? { url: videoFile.path } : undefined,
     });
 
     await doc.save();
@@ -90,6 +134,51 @@ exports.getByPageUrl = async (req, res) => {
 
 
 // UPDATE
+// exports.update = async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       uploadDate,
+//       type,
+//       content,
+//       metaTitle,
+//       metaDescription,
+//       pageUrl,
+
+//     } = req.body;
+
+//     const files = req.files;
+//     const file = files && files.length > 0 ? files[0] : null;
+
+//     const updateData = {
+//       title,
+//       uploadDate,
+//       type,
+//       content,
+//       metaTitle,
+//       metaDescription,
+//       pageUrl,
+
+//     };
+
+//     if (file) {
+//       updateData.image = {
+//         url: file.path,
+//       };
+//     }
+
+//     const updated = await NewsEvent.findByIdAndUpdate(
+//       req.params.id,
+//       updateData,
+//       { new: true }
+//     );
+
+//     res.status(200).json(updated);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 exports.update = async (req, res) => {
   try {
     const {
@@ -100,11 +189,20 @@ exports.update = async (req, res) => {
       metaTitle,
       metaDescription,
       pageUrl,
-
     } = req.body;
 
-    const files = req.files;
-    const file = files && files.length > 0 ? files[0] : null;
+    const files = req.files || [];
+    let imageFile = null;
+    let videoFile = null;
+
+    // Identify image and video files from req.files
+    files.forEach((file) => {
+      if (file.mimetype.startsWith("image/") && !imageFile) {
+        imageFile = file;
+      } else if (file.mimetype.startsWith("video/") && !videoFile) {
+        videoFile = file;
+      }
+    });
 
     const updateData = {
       title,
@@ -114,13 +212,14 @@ exports.update = async (req, res) => {
       metaTitle,
       metaDescription,
       pageUrl,
-
     };
 
-    if (file) {
-      updateData.image = {
-        url: file.path,
-      };
+    if (imageFile) {
+      updateData.image = { url: imageFile.path };
+    }
+
+    if (videoFile) {
+      updateData.video = { url: videoFile.path };
     }
 
     const updated = await NewsEvent.findByIdAndUpdate(
@@ -129,11 +228,16 @@ exports.update = async (req, res) => {
       { new: true }
     );
 
+    if (!updated) {
+      return res.status(404).json({ message: "News/Event not found" });
+    }
+
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // DELETE
 exports.remove = async (req, res) => {

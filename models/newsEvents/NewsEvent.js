@@ -8,6 +8,10 @@ const newsEventSchema = new mongoose.Schema({
     url: String,
     altText: String
   },
+    video: {
+    url: String,
+    title: String
+  },
   content: String,
   metaTitle: String,
   metaDescription: String,
