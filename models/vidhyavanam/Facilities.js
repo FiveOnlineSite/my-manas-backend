@@ -37,12 +37,12 @@ const vidhyaFacilitiesSchema = new mongoose.Schema({
   resources: {
     image: fileSchema,
     video: fileSchema,
+    featuredVideoThumbnail: fileSchema,
     featuredImage: fileSchema,
      moreFeaturedImages: [fileSchema], // ✅ new array field
      moreFeaturedVideos: [videoWithThumbnailSchema], // ✅ new array field
   },
    sliderText: { type: String },
-  isFeatured: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("VidhyaFacilities", vidhyaFacilitiesSchema);

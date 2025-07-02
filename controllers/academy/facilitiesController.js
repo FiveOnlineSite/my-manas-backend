@@ -60,7 +60,7 @@ exports.create = async (req, res) => {
     const videoFile = files.find(f => f.fieldname === "video");
     const featuredImageFile = files.find(f => f.fieldname === "featuredImage");
     const featuredVideoThumbnailFile = files.find(f => f.fieldname === "featuredVideoThumbnail");
-
+    console.log("test", featuredVideoThumbnailFile)
     // Validation: if video uploaded, featuredVideoThumbnail must be present
     if (videoFile && !featuredVideoThumbnailFile) {
       return res.status(400).json({ error: "Featured video thumbnail is required when video is uploaded." });
@@ -68,9 +68,9 @@ exports.create = async (req, res) => {
 
     const moreFeaturedImages = files
       .filter(f => f.fieldname.startsWith("moreFeaturedImages["))
-      .map(f => ({
+      .map((f, index) => ({
         url: f.path,
-        altText: f.originalname || "Additional Image",
+        altText: req.body.moreFeaturedImages?.[index]?.altText || "Additional Image",
       }));
 
     // Handle moreFeaturedVideos (video + thumbnail pair)
@@ -81,24 +81,27 @@ exports.create = async (req, res) => {
       const thumbnailFile = files.find(f => f.fieldname === `moreFeaturedVideos[${i}][thumbnail]`);
       if (!videoFile && !thumbnailFile) break;
 
+      const altText = req.body.moreFeaturedVideos?.[i]?.altText || "Additional Video";
+
       if (videoFile && !thumbnailFile) {
         return res.status(400).json({ error: `Thumbnail missing for More Featured Video ${i + 1}` });
       }
-
+      console.log(req.body.moreFeaturedVideos)
       moreFeaturedVideos.push({
         video: {
           url: videoFile?.path || "",
-          altText: videoFile?.originalname || "",
+          altText: req.body.moreFeaturedVideos?.[i]?.altText || altText,
         },
         thumbnail: {
           url: thumbnailFile?.path || "",
-          altText: thumbnailFile?.originalname || "",
+          altText: req.body.moreFeaturedVideos?.[i]?.altText || altText,
         }
       });
       i++;
     }
 
-    const doc = new Model({
+
+    const facilityData = {
       sliderText: req.body.sliderText || "",
       isFeatured: req.body.isFeatured === "true" || req.body.isFeatured === true,
       resources: {
@@ -112,17 +115,23 @@ exports.create = async (req, res) => {
         },
         featuredImage: featuredImageFile && {
           url: featuredImageFile.path,
-          altText: featuredImageFile.originalname || "Featured",
-        },
-        featuredVideoThumbnail: featuredVideoThumbnailFile && {
-          url: featuredVideoThumbnailFile.path,
-          altText: featuredVideoThumbnailFile.originalname || "Featured Video Thumbnail",
+          altText: req.body.featuredImageAltText || "Featured Image",
         },
         moreFeaturedImages,
         moreFeaturedVideos,
       },
-    });
+    }
 
+    if (featuredVideoThumbnailFile) {
+      facilityData.resources.featuredVideoThumbnail = {
+        url: featuredVideoThumbnailFile.path,
+        altText: req.body.featuredVideoThumbnailAltText || "Featured Video Thumbnail",
+      }
+    }
+
+    console.log('console__facilityData', facilityData)
+    const doc = new Model(facilityData);
+    console.log('console__doc', doc)
     await doc.save();
     res.status(201).json(doc);
   } catch (err) {
@@ -253,11 +262,12 @@ exports.update = async (req, res) => {
     const featuredImageFile = files.find(f => f.fieldname === "featuredImage");
     const featuredVideoThumbnailFile = files.find(f => f.fieldname === "featuredVideoThumbnail");
 
+    // Handle more featured images (ensure altText is handled properly)
     const moreFeaturedImages = files
-      .filter(f => f.fieldname.startsWith("moreFeaturedImages["))
-      .map(f => ({
+      .filter(f => f.fieldname.startsWith("moreFeaturedImages[")) // Handle more featured images
+      .map((f, index) => ({
         url: f.path,
-        altText: f.originalname || "Additional Image",
+        altText: req.body.moreFeaturedImages?.[index]?.altText || "Additional Image",
       }));
 
     // Handle removed images/videos
@@ -269,15 +279,20 @@ exports.update = async (req, res) => {
       ? req.body.removedVideos
       : req.body.removedVideos ? [req.body.removedVideos] : [];
 
-    const normalizeUrl = url => decodeURIComponent(url.trim());
+    const normalizeUrl = (url) => decodeURIComponent(url.trim());
     const existingImages = existingDoc.resources?.moreFeaturedImages || [];
     const filteredImages = existingImages.filter(
-      img => !removedImageUrls.map(normalizeUrl).includes(normalizeUrl(img.url))
+      (img) => !removedImageUrls.map(normalizeUrl).includes(normalizeUrl(img.url))
+    );
+    // Handle removal of videos
+    const existingVideos = existingDoc.resources?.moreFeaturedVideos || [];
+    const filteredVideos = existingVideos.filter(
+      (vid) => !removedVideoUrls.map(normalizeUrl).includes(normalizeUrl(vid.video.url))
     );
 
-    // Handle moreFeaturedVideos update (append new ones)
+    // Handle moreFeaturedVideos update (append new ones, include altText)
     const newMoreFeaturedVideos = [];
-    let i = 0;
+    let i = filteredVideos.length;
     while (true) {
       const videoFile = files.find(f => f.fieldname === `moreFeaturedVideos[${i}][video]`);
       const thumbnailFile = files.find(f => f.fieldname === `moreFeaturedVideos[${i}][thumbnail]`);
@@ -290,20 +305,24 @@ exports.update = async (req, res) => {
       newMoreFeaturedVideos.push({
         video: {
           url: videoFile?.path || "",
-          altText: videoFile?.originalname || "",
+          altText: req.body.moreFeaturedVideos?.[i]?.altText || "Additional Video", // Handle altText
         },
         thumbnail: {
           url: thumbnailFile?.path || "",
-          altText: thumbnailFile?.originalname || "",
-        }
+          altText: req.body.moreFeaturedVideos?.[i]?.altText || "Thumbnail", // Handle altText
+        },
       });
       i++;
     }
 
-    if (videoFile && !featuredVideoThumbnailFile && !existingDoc.resources?.featuredVideoThumbnail) {
-      return res.status(400).json({ error: "Featured video thumbnail is required when video is uploaded." });
+    // Handle video update
+    if (videoFile) {
+      if (!featuredVideoThumbnailFile && !existingDoc.resources?.featuredVideoThumbnail) {
+        return res.status(400).json({ error: "Featured video thumbnail is required when video is uploaded." });
+      }
     }
 
+    // Update the resources
     const updatedResources = {
       image: imageFile
         ? { url: imageFile.path, altText: req.body.imageAltText || imageFile.originalname }
@@ -314,15 +333,15 @@ exports.update = async (req, res) => {
         : existingDoc.resources?.video,
 
       featuredImage: featuredImageFile
-        ? { url: featuredImageFile.path, altText: featuredImageFile.originalname || "Featured" }
+        ? { url: featuredImageFile.path, altText: req.body.featuredImageAltText || "Featured Image" }
         : existingDoc.resources?.featuredImage,
 
       featuredVideoThumbnail: featuredVideoThumbnailFile
-        ? { url: featuredVideoThumbnailFile.path, altText: featuredVideoThumbnailFile.originalname || "Featured Video Thumbnail" }
+        ? { url: featuredVideoThumbnailFile.path, altText: req.body.featuredVideoThumbnailAltText || "Featured Video Thumbnail" }
         : existingDoc.resources?.featuredVideoThumbnail,
 
       moreFeaturedImages: [...filteredImages, ...moreFeaturedImages],
-      moreFeaturedVideos: [...(existingDoc.resources?.moreFeaturedVideos || []), ...newMoreFeaturedVideos],
+      moreFeaturedVideos: [...filteredVideos, ...newMoreFeaturedVideos], // Append new videos and remove old ones
     };
 
     const updated = await Model.findByIdAndUpdate(
@@ -335,11 +354,19 @@ exports.update = async (req, res) => {
       { new: true }
     );
 
+    console.log('Updated Document:', JSON.stringify(updated, null, 2)); // Debugging log
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+
+
+
 
 
 // DELETE
